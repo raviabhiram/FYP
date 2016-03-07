@@ -1,0 +1,6 @@
+Enter the population of the system:- Enter the total time of simulation:- Enter the distance matrix:-
+Enter buffer size of each node:- 
+1 = 2 = 3 = 4 = 5 = 6 = Enter number of source nodes:- Source: 1 Destination: 4
+Source: 2 Destination: 0
+Source: 3 Destination: 2
+Source: 0 Destination: 1
