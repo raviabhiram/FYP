@@ -5,23 +5,24 @@
 
 using namespace std;
 
-double tt,sc,ic,rc,s0,i0,r0,k1,k2,k3,k4,i1,i2,i3,i4,g1,g2,g3,g4,l,u,b,g,sarr[100],iarr[100],rarr[100];
+double tt,sc,ic,rc,s0,i0,r0,k1,k2,k3,k4,i1,i2,i3,i4,g1,g2,g3,g4,l,u,b,a,sarr[100],iarr[100],rarr[100];
 
 double s(double x,double y,double z)
 {
-	return -(b*x*y);
+	return -(a*x*y);
 }
 double i(double x,double y,double z)
 {
-	return (b*x*y)-(g*y);
+	return (a*x*y)-(b*y);
 }
 double r(double x,double y,double z)
 {
-	return (g*y);
+	return (b*y);
 }
 int main()
 {
-	int t;
+	double t;
+	int ct;
 	FILE * fx;
 	fx=fopen("rk.xg","w");
 	fclose(fx);
@@ -38,10 +39,11 @@ int main()
 //	cout<<"Enter the birth rate and death rate:- ";
 //	cin>>l>>u;
 	cout<<"Enter alpha:- ";
-	cin>>b;
+	cin>>a;
 	cout<<"Enter beta:- ";
-	cin>>g;
-	t=1;
+	cin>>b;
+	t=0.08;
+	ct=1;
 	do
 	{
 		k1=t*s(s0,i0,r0);
@@ -62,10 +64,11 @@ int main()
 		cout<<"S = "<<sc/total<<endl;
 		cout<<"I = "<<ic/total<<endl;
 		cout<<"R = "<<rc/total<<endl;
-		sarr[t]=sc/total;
-		iarr[t]=ic/total;
-		rarr[t]=rc/total;
-		t++;
+		sarr[ct]=sc/total;
+		iarr[ct]=ic/total;
+		rarr[ct]=rc/total;
+		t+=0.005;
+		ct++;
 	}while(ic>=0 && sc>=0 && rc>=0);
 	tt=t;
 	fprintf(fx,"\n\"S\"\n");

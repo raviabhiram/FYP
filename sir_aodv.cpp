@@ -1,5 +1,6 @@
 #include<iostream>
 #include<stdlib.h>
+#include<stdio.h>
 
 #define MAX 100//maximum number of nodes that can be created
 #define INF 9999//virtual value of infinity
@@ -9,13 +10,14 @@
 
 using namespace std;
 
-double am[MAX][MAX],timeElapsed=0,totTime;
+double am[MAX][MAX],timeElapsed=0,totTime,pStartTime;
 int population,tfront=-1,trear=-1;
 int dropCount=0,pktCount=0,rcvCount=0;
 int s0,i0,r0,sn,in,rn;
+double k1,k2,k3,k4,i1,i2,i3,i4,g1,g2,g3,g4;
+double alpha=0.00005,beta=0.1;
 int icount=0,scount=0,rcount=0;
-int sFlag=0;
-int s0,i0,r0,s1,i1,r1;
+int startFlag=0,paramStopFlag=0;
 
 class packet//we will be creating objects of this class for our packets
 {
@@ -53,16 +55,20 @@ struct path//the node propertires
 		rear=(rear+1)%buffSize;
 		if(isOld && (rear==front))//if the buffer is full, start dropping packets
 		{
-			cout<<"d\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet drop statement
+//			cout<<"d\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet drop statement
 			dropCount++;
 			state='I';
 			icount++;
-			if(!sFlag)
+			if(startFlag==0)
 			{
-				sFlag=1;
+				cout<<"Dropped first packet at "<<timeElapsed<<endl;
+				startFlag=1;
+				pStartTime=timeElapsed;
+				cout<<pStartTime<<endl;
 				s0=scount;
 				i0=icount;
 				r0=rcount;
+				cout<<"s0="<<s0<<" i0="<<i0<<" r0="<<r0<<endl;
 			}
 		}
 		else//if queue isn't full, add the packet to the queue
@@ -70,10 +76,12 @@ struct path//the node propertires
 			q[rear]=p;
 			buffAvailable--;
 			if(isOld && p->currNode != p->des)
-				cout<<"+\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet enqueue statement
+			{
+//				cout<<"+\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet enqueue statement
+			}
 			else
 			{
-				cout<<"a\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet enqueue statement
+//				cout<<"a\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet enqueue statement
 			}
 		}
 	}
@@ -89,10 +97,12 @@ struct path//the node propertires
 			buffAvailable++;
 			packet *p=q[front];
 			if(p->currNode!=p->des)
-				cout<<"-\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet dequeue statement
+			{
+//				cout<<"-\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet dequeue statement
+			}
 			else
 			{
-				cout<<"r\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet enqueue statement
+//				cout<<"r\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet enqueue statement
 				rcvCount++;
 			}
 			return q[front];
@@ -138,12 +148,69 @@ void tpush(packet *p)
 	tempQ[trear]=p;
 }
 
+void computeParams()
+{
+	cout<<"Entered computeParams\n";
+	//compute values of alpha and beta here.
+	paramStopFlag=1;
+}
+
+double s(double x,double y,double z)
+{
+	return -(alpha*x*y);
+}
+
+double i(double x,double y,double z)
+{
+	return (alpha*x*y)-(beta*y);
+}
+
+double r(double x,double y,double z)
+{
+	return (beta*y);
+}
+
+void rungeKutta()
+{
+	cout<<"Entered rungeKutta\n";
+	k1=timeElapsed*s(s0,i0,r0);
+	i1=timeElapsed*i(s0,i0,r0);
+	g1=timeElapsed*r(s0,i0,r0);
+	k2=timeElapsed*s(s0+(k1/2),i0+(i1/2),r0+(g1/2));
+	i2=timeElapsed*i(s0+(k1/2),i0+(i1/2),r0+(g1/2));
+	g2=timeElapsed*r(s0+(k1/2),i0+(i1/2),r0+(g1/2));
+	k3=timeElapsed*s(s0+(k2/2),i0+(i2/2),r0+(g2/2));
+	i3=timeElapsed*i(s0+(k2/2),i0+(i2/2),r0+(g2/2));
+	g3=timeElapsed*r(s0+(k2/2),i0+(i2/2),r0+(g2/2));
+	k4=timeElapsed*s(s0+(k3/2),i0+(i3/2),r0+(g3/2));
+	i4=timeElapsed*i(s0+(k3/2),i0+(i3/2),r0+(g3/2));
+	g4=timeElapsed*r(s0+(k3/2),i0+(i3/2),r0+(g3/2));
+	sn=s0+(k1 + (2*k2) + (2*k3) + k4)/6;
+	in=i0+(i1 + (2*i2) + (2*i3) + i4)/6;
+	rn=r0+(g1 + (2*g2) + (2*g3) + g4)/6;
+	for(int i=0;i<population;i++)
+	{
+		if(i<sn)
+			nodes[i].state='S';
+		else if(i<sn+rn)
+			nodes[i].state='R';
+		else
+			nodes[i].state='I';
+	}
+	if(sn<0 || in<0 || rn<0)
+	{
+		cout<<"Network Overload\n";
+		exit(0);
+	}
+}
+
 void computeState()
 {
+	cout<<"Entered computeState\n";
 	int i=0;
 	for(i=0;i<population;i++)
 	{
-		if(((double)nodes[i].buffAvailable/(double)nodes[i].buffSize)<0.6)
+		if(((double)nodes[i].buffAvailable/(double)nodes[i].buffSize)<0.6 && nodes[i].state != 'R')
 		{
 			if(nodes[i].state=='S')
 				scount--;
@@ -152,14 +219,14 @@ void computeState()
 			nodes[i].state='R';
 			rcount++;
 		}
-		if(((double)nodes[i].buffAvailable/(double)nodes[i].buffSize)>0.8 && nodes[i].state!='I')
+		if(((double)nodes[i].buffAvailable/(double)nodes[i].buffSize)>0.8 && nodes[i].state!='I' && nodes[i].state!='S')
 		{
 			if(nodes[i].state=='R')
 				rcount--;
 			nodes[i].state='S';
 			scount++;
 		}
-		if(nodes[i].buffAvailable==0)
+		if(nodes[i].buffAvailable==0 && nodes[i].state!='I')
 		{
 			nodes[i].state='I';
 			icount++;
@@ -169,19 +236,26 @@ void computeState()
 
 void sendData()
 {	
-	int flag=0;//used to note if a new packet is to be created
-	while(timeElapsed<totTime)//simulation needs to run for a particular time interval
+	int flag=0;//used to note if a new packet is to be created.
+	while(timeElapsed<totTime)//simulation needs to run for a particular time interval.
 	{
 //		nodes[2].state='I';
 		while(tfront!=trear)
 		{
 			tfront=(tfront+1)%MAX;
 			packet *p=tempQ[tfront];
-			p->currNode=p->nextHop;//send the packet to the next node in the path
-			p->nextHop=nodes[p->currNode].nextHop[nodes[p->srcNode].destination];//update the next hop based on the path
-			nodes[p->currNode].push(p,1);//push the packet to the next node
+			p->currNode=p->nextHop;//send the packet to the next node in the path.
+			p->nextHop=nodes[p->currNode].nextHop[nodes[p->srcNode].destination];//update the next hop based on the path.
+			nodes[p->currNode].push(p,1);//push the packet to the next node.
 		}
-		computeState();
+		if(paramStopFlag)//predictive way to mark the state of nodes.
+		{
+			rungeKutta();
+		}
+		else//initial way to mark the state of nodes.
+		{
+			computeState();
+		}
 		for(int i=0;i<population;i++)//at every point in time, all nodes need to be checked to send packets
 		{
 			findPath();
@@ -211,6 +285,10 @@ void sendData()
 				}
 			}
 		}
+		if(timeElapsed-pStartTime==(double)5)
+		{
+			computeParams();
+		}
 		timeElapsed+=0.005;//update time elapsed
 		if(flag)
 			flag=0;
@@ -234,10 +312,14 @@ int main(int argc,char* argv[])
 	cout<<"Enter the total time of simulation:- ";
 	cin>>totTime;
 	cout<<"Enter the distance matrix:-\n";
+	scount=0;
 	for(i=0;i<population;i++)
 	{
 		nodes[i].isSource=false;//initialise all nodes as intermediates and not source
 		nodes[i].pktId=0;
+		nodes[i].state='S';
+		scount++;
+		cout<<scount<<endl;
 		nodes[i].rear=-1;//used as an iterator to pop packets from queues
 		nodes[i].front=-1;//used as an iterator to push packets into the queue
 		for(j=0;j<population;j++)
@@ -261,7 +343,6 @@ int main(int argc,char* argv[])
 		cout<<i+1<<" = ";
 		cin>>nodes[i].buffSize;//input the queue size of each node
 		nodes[i].buffAvailable=nodes[i].buffSize;//initialize buffer available of each node as the queue size
-		nodes[i].state='S';//all nodes are initially in SUSCEPTIBLE state
 	}
 	cout<<"Enter number of source nodes:- ";
 	cin>>nsrc;
