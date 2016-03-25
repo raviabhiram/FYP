@@ -85,16 +85,13 @@ struct path//the node propertires
 			}
 			else if(!isOld)
 			{
-				rear=(rear+1)%buffSize;
-				q[rear]=p;
-				buffAvailable--;
 //				cout<<"a\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet enqueue statement
 			}
 		}
 	}
 	packet *pop()//return a packet if the queue is not empty
 	{
-		if((buffAvailable==buffSize))
+		if((front==rear))
 		{
 			return NULL;//queue is empty, no packets to send. Do nothing
 		}
