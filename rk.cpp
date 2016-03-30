@@ -42,7 +42,7 @@ int main()
 	cin>>a;
 	cout<<"Enter beta:- ";
 	cin>>b;
-	t=0.08;
+	t=0.0;
 	ct=1;
 	do
 	{
@@ -61,9 +61,10 @@ int main()
 		sc=s0+(k1 + (2*k2) + (2*k3) + k4)/6;
 		ic=i0+(i1 + (2*i2) + (2*i3) + i4)/6;
 		rc=r0+(g1 + (2*g2) + (2*g3) + g4)/6;
-		cout<<"S = "<<sc/total<<endl;
-		cout<<"I = "<<ic/total<<endl;
-		cout<<"R = "<<rc/total<<endl;
+		cout<<"Time:- "<<t<<endl;
+		cout<<"S = "<<sc<<endl;
+		cout<<"I = "<<ic<<endl;
+		cout<<"R = "<<rc<<endl;
 		sarr[ct]=sc/total;
 		iarr[ct]=ic/total;
 		rarr[ct]=rc/total;

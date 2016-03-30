@@ -17,7 +17,8 @@ int s0,i0,r0,sn,in,rn;
 double k1,k2,k3,k4,i1,i2,i3,i4,g1,g2,g3,g4;
 double alpha=0.00005,beta=0.1;
 int icount=0,scount=0,rcount=0;
-int startFlag=0,paramStopFlag=0,computeParamFlag=0;
+int startFlag=0,computeParamFlag=0;
+int buffList[MAX],rank[MAX];
 
 class packet//we will be creating objects of this class for our packets
 {
@@ -52,10 +53,15 @@ struct path//the node propertires
 	char state;//used to store the state of the node (S,I,R)
 	void push(packet *p, int isOld)//take a packet as parameter to push into the queue
 	{
-//		if(isOld && (rear==front))//if the buffer is full, start dropping packets
+		if(p->currNode==p->des)
+		{
+			cout<<"r\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet enqueue statement
+			rcvCount++;
+			return;
+		}
 		if(buffAvailable == 0)
 		{
-//			cout<<"d\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet drop statement
+			cout<<"d\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet drop statement
 			dropCount++;
 			if(startFlag==0)
 			{
@@ -71,24 +77,19 @@ struct path//the node propertires
 		}
 		else//if queue isn't full, add the packet to the queue
 		{
-			if(isOld && p->currNode != p->des)
+			if(isOld)
 			{
 				rear=(rear+1)%buffSize;
 				q[rear]=p;
 				buffAvailable--;
-//				cout<<"+\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet enqueue statement
+				cout<<"+\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet enqueue statement
 			}
-			else if(p->currNode == p->des)
-			{
-//				cout<<"r\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet enqueue statement
-				rcvCount++;
-			}
-			else if(!isOld)
+			else
 			{
 				rear=(rear+1)%buffSize;
 				q[rear]=p;
 				buffAvailable--;
-//				cout<<"a\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet enqueue statement
+				cout<<"a\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet enqueue statement
 			}
 		}
 	}
@@ -103,7 +104,7 @@ struct path//the node propertires
 			front=(front+1)%buffSize;
 			buffAvailable++;
 			packet *p=q[front];
-//			cout<<"-\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet dequeue statement
+			cout<<"-\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet dequeue statement
 			return q[front];
 		}
 	}
@@ -116,7 +117,6 @@ void printPath(int src,int des)//traverse using next hop of each node for a part
 	{
 		cout<<i<<"-->";
 		i=nodes[i].nextHop[des];
-//	}while(nodes[i].nextHop[des]!=des);
 	}while(i!=des);
 	cout<<des<<endl;
 }
@@ -150,8 +150,14 @@ void tpush(packet *p)
 void computeParams()
 {
 	cout<<"Entered computeParams\n";
-	//compute values of alpha and beta here.
-	paramStopFlag=1;
+	double ds,di,dt;
+	ds=(double)s0-(double)sn;
+	di=(double)i0-(double)in;
+	dt=timeElapsed-pStartTime;
+	cout<<"ds= "<<ds<<endl<<"di= "<<di<<endl<<"dt= "<<dt<<endl; 
+	alpha=ds/(dt*(double)in*(double)sn);
+	beta=((alpha*(double)in*(double)sn)-(di/dt))/(double)in;
+	cout<<"Alpha= "<<alpha<<endl<<"Beta= "<<beta<<endl;
 }
 
 double s(double x,double y,double z)
@@ -167,6 +173,46 @@ double i(double x,double y,double z)
 double r(double x,double y,double z)
 {
 	return (beta*y);
+}
+
+void rankNodes()
+{
+	int i,j=0,u,max;
+	for(i=0;i<population;i++)
+	{
+		buffList[i]=nodes[i].buffAvailable;
+	}
+	while(j<population)
+	{
+		max=0;
+		for(i=0;i<population;i++)
+		{
+			if(buffList[i]>=max)
+			{
+				max=buffList[i];
+				u=i;
+			}
+		}
+		buffList[u]=0;
+		rank[j++]=u;
+	}
+}
+
+void updateState()
+{
+	int i=0;
+	while(i<in)
+	{
+		nodes[rank[i]].state='I';
+	}
+	while(i-in<sn)
+	{
+		nodes[rank[i]].state='S';
+	}
+	while(i<population)
+	{
+		nodes[rank[i]].state='R';
+	}
 }
 
 void rungeKutta()
@@ -187,20 +233,13 @@ void rungeKutta()
 	sn=s0+(k1 + (2*k2) + (2*k3) + k4)/6;
 	in=i0+(i1 + (2*i2) + (2*i3) + i4)/6;
 	rn=r0+(g1 + (2*g2) + (2*g3) + g4)/6;
-	for(int i=0;i<population;i++)
-	{
-		if(i<sn)
-			nodes[i].state='S';
-		else if(i<sn+rn)
-			nodes[i].state='R';
-		else
-			nodes[i].state='I';
-	}
 	if(sn<0 || in<0 || rn<0)
 	{
 		cout<<"Network Overload\n";
 		exit(0);
 	}
+	rankNodes();
+	updateState();
 }
 
 void computeState()
@@ -229,7 +268,7 @@ void computeState()
 		}
 	}
 	cout<<"timeElapsed= "<<timeElapsed<<" pStartTime= "<<pStartTime<<endl;
-	if(!computeParamFlag && timeElapsed-pStartTime>=5)
+	if(!computeParamFlag && timeElapsed-pStartTime>=5 && icount>0)
 	{
 		computeParamFlag=1;
 		computeParams();
@@ -279,7 +318,7 @@ void sendData()
 			}
 			cout<<"Node:- "<<i<<" BuffAvailable:- "<<nodes[i].buffAvailable<<endl;
 		}
-		if(paramStopFlag)//predictive way to mark the state of nodes.
+		if(computeParamFlag)//predictive way to mark the state of nodes.
 		{
 			rungeKutta();
 		}
@@ -335,6 +374,10 @@ int main(int argc,char* argv[])
 				nodes[i].nextHop[j]=i;
 			}
 		}
+	}
+	for(i=0;i<MAX;i++)
+	{
+		buffList[i]=9999;
 	}
 	cout<<"Enter buffer size of each node:- \n";
 	for(i=0;i<population;i++)
