@@ -6,29 +6,33 @@ BEGIN {
 }
 {
 	#packet delivery ratio
-	if($1 == "a" && seqno < $6) {
-		seqno = $3;
-	} 
-	else if(($1 == "r")) {
+	if($4 == "RTR" && $1 == "s" && seqno < $6) 
+	{
+		seqno = $6;
+	} else if(($4 == "RTR") && ($1 == "r")) 
+	{
 		receivedPackets++;
-	} 
-	else if ($1 == "d"){
+	} else if ($1 == "D")
+	{
 		droppedPackets++;
 	}
 	#end-to-end delay
-	if($1 == "a") {
+	if($4 == "RTR" && $1 == "s") 
+	{
 		start_time[$6] = $2;
-	} 
-	else if($1 == "r") {
+	} else if($1 == "r") 
+	{
 		end_time[$6] = $2;
-	}
-	else if($1 == "d") {
+	} else if($1 == "D") 
+	{
 		end_time[$6] = -1;
 	}
 }
 END {
-	for(i=0; i<=seqno; i++) {
-		if(end_time[i] > 0) {
+	for(i=0; i<=seqno; i++) 
+	{
+		if(end_time[i] > 0) 
+		{
 			delay[i] = end_time[i] - start_time[i];
 			count++;
 		}
@@ -38,8 +42,10 @@ END {
 		}
 	}
 	count = 10;
-	for(i=0; i<count; i++) {
-		if(delay[i] > 0) {
+	for(i=0; i<count; i++) 
+	{
+		if(delay[i] > 0) 
+		{
 			n_to_n_delay = n_to_n_delay + delay[i];
 		}
 	}
@@ -47,6 +53,8 @@ END {
 	print "\n";
 	print "ReceivedPackets = " receivedPackets;
 	print "Total Dropped Packets = " droppedPackets;
+	print "Total Packets Sent = " (receivedPackets+droppedPackets);
+	print "Delivery Ratio(%) = " receivedPackets/(receivedPackets+droppedPackets)*100;
 	print "Average End-to-End Delay = " n_to_n_delay * 1000 " ms";
 	print "\n";
 }

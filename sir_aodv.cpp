@@ -65,14 +65,14 @@ struct path//the node propertires
 			dropCount++;
 			if(startFlag==0)
 			{
-				cout<<"Dropped first packet at "<<timeElapsed<<endl;
+//				cout<<"Dropped first packet at "<<timeElapsed<<endl;
 				startFlag=1;
 				pStartTime=timeElapsed;
-				cout<<pStartTime<<endl;
+//				cout<<pStartTime<<endl;
 				s0=scount;
 				i0=icount;
 				r0=rcount;
-				cout<<"buffavailable="<<buffAvailable<<endl;
+//				cout<<"buffavailable="<<buffAvailable<<endl;
 			}
 		}
 		else//if queue isn't full, add the packet to the queue
@@ -149,34 +149,18 @@ void tpush(packet *p)
 
 void computeParams()
 {
-	cout<<"Entered computeParams\n";
+//	cout<<"Entered computeParams\n";
 	double ds,di,dt;
 	ds=(double)s0-(double)sn;
 	di=(double)i0-(double)in;
 	dt=timeElapsed-pStartTime;
-	cout<<"ds= "<<ds<<endl<<"di= "<<di<<endl<<"dt= "<<dt<<endl; 
-	alpha=ds/(dt*(double)in*(double)sn);
-	beta=((alpha*(double)in*(double)sn)-(di/dt))/(double)in;
-	cout<<"Alpha= "<<alpha<<endl<<"Beta= "<<beta<<endl;
-}
-
-double s(double x,double y,double z)
-{
-	return -(alpha*x*y);
-}
-
-double i(double x,double y,double z)
-{
-	return (alpha*x*y)-(beta*y);
-}
-
-double r(double x,double y,double z)
-{
-	return (beta*y);
+	alpha=ds/(dt*(double)icount*(double)scount);
+	beta=((alpha*(double)icount*(double)scount)-(di/dt))/(double)icount;
 }
 
 void rankNodes()
 {
+//	cout<<"Entered rankNodes.\n";
 	int i,j=0,u,max;
 	for(i=0;i<population;i++)
 	{
@@ -200,24 +184,42 @@ void rankNodes()
 
 void updateState()
 {
+//	cout<<"Entered updateState.\n";
 	int i=0;
 	while(i<in)
 	{
-		nodes[rank[i]].state='I';
+		nodes[rank[i++]].state='I';
 	}
 	while(i-in<sn)
 	{
-		nodes[rank[i]].state='S';
+		nodes[rank[i++]].state='S';
 	}
 	while(i<population)
 	{
-		nodes[rank[i]].state='R';
+		nodes[rank[i++]].state='R';
 	}
+}
+
+double s(double x,double y,double z)
+{
+	return -(alpha*x*y);
+}
+
+double i(double x,double y,double z)
+{
+	return (alpha*x*y)-(beta*y);
+}
+
+double r(double x,double y,double z)
+{
+	return (beta*y);
 }
 
 void rungeKutta()
 {
-	cout<<"Entered rungeKutta\n";
+//	cout<<"Entered rungeKutta\n";
+//	cout<<"alpha= "<<alpha<<endl;
+//	cout<<"beta= "<<beta<<endl;
 	k1=timeElapsed*s(s0,i0,r0);
 	i1=timeElapsed*i(s0,i0,r0);
 	g1=timeElapsed*r(s0,i0,r0);
@@ -233,18 +235,26 @@ void rungeKutta()
 	sn=s0+(k1 + (2*k2) + (2*k3) + k4)/6;
 	in=i0+(i1 + (2*i2) + (2*i3) + i4)/6;
 	rn=r0+(g1 + (2*g2) + (2*g3) + g4)/6;
-	if(sn<0 || in<0 || rn<0)
-	{
-		cout<<"Network Overload\n";
-		exit(0);
-	}
+	if(sn>population)
+		sn=population;
+	if(in>population)
+		in=population;
+	if(rn>population)
+		rn=population;
+	if(sn<0)
+		sn=0;
+	if(in<0)
+		in=0;
+	if(rn<0)
+		rn=0;
 	rankNodes();
 	updateState();
+//	cout<<"Returned to rungeKutta.\n";
 }
 
 void computeState()
 {
-	cout<<"Entered computeState\n";
+//	cout<<"Entered computeState\n";
 	int i=0;
 	for(i=0;i<population;i++)
 	{
@@ -254,20 +264,20 @@ void computeState()
 			nodes[i].state='R';
 			rcount++;
 		}
-		if(((double)nodes[i].buffAvailable/(double)nodes[i].buffSize) < 0.2 && nodes[i].state == 'R')
+		if(((double)nodes[i].buffAvailable/(double)nodes[i].buffSize) > 0.2 && ((double)nodes[i].buffAvailable/(double)nodes[i].buffSize) < 0.4 && nodes[i].state == 'R')
 		{
 			rcount--;
 			nodes[i].state='S';
 			scount++;
 		}
-		else if(nodes[i].buffAvailable == 0 && nodes[i].state == 'S')
+		else if(((double)nodes[i].buffAvailable/(double)nodes[i].buffSize) < 0.2 && nodes[i].state == 'S')
 		{
 			scount--;
 			nodes[i].state='I';
 			icount++;
 		}
 	}
-	cout<<"timeElapsed= "<<timeElapsed<<" pStartTime= "<<pStartTime<<endl;
+//	cout<<"timeElapsed= "<<timeElapsed<<" pStartTime= "<<pStartTime<<endl;
 	if(!computeParamFlag && timeElapsed-pStartTime>=5 && icount>0)
 	{
 		computeParamFlag=1;
@@ -316,7 +326,7 @@ void sendData()
 					}
 				}
 			}
-			cout<<"Node:- "<<i<<" BuffAvailable:- "<<nodes[i].buffAvailable<<endl;
+//			cout<<"Node:- "<<i<<" BuffAvailable:- "<<nodes[i].buffAvailable<<endl;
 		}
 		if(computeParamFlag)//predictive way to mark the state of nodes.
 		{
@@ -326,7 +336,7 @@ void sendData()
 		{
 			computeState();
 		}
-		cout<<"scount="<<scount<<" icount="<<icount<<" rcount="<<rcount<<endl;
+//		cout<<"scount="<<scount<<" icount="<<icount<<" rcount="<<rcount<<endl;
 		timeElapsed+=0.005;//update time elapsed
 		if(flag)
 			flag=0;
@@ -338,7 +348,7 @@ void sendData()
 void throughput()
 {
 	double thrpt=(double)rcvCount/(double)pktCount;
-	cout<<"Throughput:- "<<thrpt<<endl;
+	cout<<"Delivery Ratio:- "<<thrpt<<endl;
 	return;
 }
 

@@ -47,6 +47,8 @@ END {
 	print "\n";
 	print "ReceivedPackets = " receivedPackets;
 	print "Total Dropped Packets = " droppedPackets;
+	print "Total Packets Sent = " (receivedPackets+droppedPackets);
+	print "Delivery Ratio(%) = " receivedPackets/(receivedPackets+droppedPackets)*100;
 	print "Average End-to-End Delay = " n_to_n_delay * 1000 " ms";
 	print "\n";
 }
