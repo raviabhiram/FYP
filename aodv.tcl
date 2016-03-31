@@ -14,6 +14,9 @@ set opt(rp)             AODV                       ;# routing protocol
 set opt(x)              1800   			   ;# X dimension of topography 
 set opt(y)              840   			   ;# Y dimension of topography   
 
+puts "Enter number of source nodes:- "
+set nsrc [gets stdin]
+
 ### Setting The Simulator Objects
                   
       set ns_ [new Simulator]
@@ -122,8 +125,6 @@ set opt(y)              840   			   ;# Y dimension of topography
       $ns_ initial_node_pos $n4 6
       $ns_ initial_node_pos $n5 6
      
-      
-
       #### Setting The Labels For Nodes
       
       $ns_ at 0.0 "$Server1 label Server1"
@@ -134,25 +135,6 @@ set opt(y)              840   			   ;# Y dimension of topography
       $ns_ at 0.0 "$n4 label node4"
       $ns_ at 0.0 "$n5 label node5"
       
-      $n2 color green
-      $ns_ at 0.0 "$n2 color green"
-      
-      $n3 color green
-      $ns_ at 0.0 "$n3 color green"
-      
-      $n4 color green
-      $ns_ at 0.0 "$n4 color green"
-      
-      $n5 color green
-      $ns_ at 0.0 "$n5 color green"
-      
-     
-      $Server1 color maroon
-      $ns_ at 0.0 "$Server1 color maroon"
-      
-      $Server2 color maroon
-      $ns_ at 0.0 "$Server2 color maroon"
-
       ## SETTING ANIMATION RATE 
       $ns_ at 0.0 "$ns_ set-animation-rate 12.5ms"
        
@@ -164,25 +146,48 @@ set opt(y)              840   			   ;# Y dimension of topography
       $cbr0 set packetSize_ 1000    
       $cbr0 set interopt_ .07
       $ns_ at 0.0 "$cbr0 start"
-      $ns_ at 4.0 "$cbr0 stop"
+      $ns_ at 10.0 "$cbr0 stop"
       
       set udp1 [$ns_ create-connection UDP $n2 LossMonitor $Server1 0]
       $udp1 set fid_ 1
       set cbr1 [$udp1 attach-app Traffic/CBR]
       $cbr1 set packetSize_ 1000    
       $cbr1 set interopt_ .07
-      $cbr1 set rate_ 1mb
       $ns_ at 0.1 "$cbr1 start"
       $ns_ at 10.1 "$cbr1 stop"
-      
-      
-      #ANNOTATIONS DETAILS 
 
-#      $ns_ at 0.0 "$ns_ trace-annotate \"MOBILE NODE MOVEMENTS\""
-#      $ns_ at 4.1 "$ns_ trace-annotate \"NODE27 CACHE THE DATA FRO SERVER\""
-#      #$ns_ at 4.59 "$ns_ trace-annotate \"PACKET LOSS AT NODE27\""     
-#      $ns_ at 4.71 "$ns_ trace-annotate \"NODE10 CACHE THE DATA\""      
-            
+      $cbr0 set rate_ 1mb
+      $cbr1 set rate_ 1mb
+
+      if {$nsrc >=3 } {
+        set udp2 [$ns_ create-connection UDP $n4 LossMonitor $n3 0]
+        $udp2 set fid_ 1
+        set cbr2 [$udp2 attach-app Traffic/CBR]
+        $cbr2 set packetSize_ 1000    
+        $cbr2 set interopt_ .07
+        $ns_ at 0.1 "$cbr2 start"
+        $ns_ at 10.1 "$cbr2 stop"
+
+        $cbr0 set rate_ 0.5mb
+        $cbr1 set rate_ 0.5mb
+        $cbr2 set rate_ 0.5mb
+
+        if {$nsrc >= 4} {
+          set udp3 [$ns_ create-connection UDP $n3 LossMonitor $n4 0]
+          $udp3 set fid_ 1
+          set cbr3 [$udp2 attach-app Traffic/CBR]
+          $cbr3 set packetSize_ 1000    
+          $cbr3 set interopt_ .07
+          $ns_ at 0.1 "$cbr3 start"
+          $ns_ at 10.1 "$cbr3 stop"
+
+          $cbr0 set rate_ 0.5mb
+          $cbr1 set rate_ 0.5mb
+          $cbr2 set rate_ 0.5mb
+          $cbr3 set rate_ 0.5mb
+        }
+      }
+
       ### PROCEDURE TO STOP 
 
       proc stop {} {
