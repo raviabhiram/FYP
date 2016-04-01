@@ -56,23 +56,18 @@ struct path//the node propertires
 		if(p->currNode==p->des)
 		{
 			cout<<"r\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet enqueue statement
-			rcvCount++;
 			return;
 		}
 		if(buffAvailable == 0)
 		{
 			cout<<"d\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet drop statement
-			dropCount++;
 			if(startFlag==0)
 			{
-//				cout<<"Dropped first packet at "<<timeElapsed<<endl;
 				startFlag=1;
 				pStartTime=timeElapsed;
-//				cout<<pStartTime<<endl;
 				s0=scount;
 				i0=icount;
 				r0=rcount;
-//				cout<<"buffavailable="<<buffAvailable<<endl;
 			}
 		}
 		else//if queue isn't full, add the packet to the queue
@@ -149,7 +144,6 @@ void tpush(packet *p)
 
 void computeParams()
 {
-//	cout<<"Entered computeParams\n";
 	double ds,di,dt;
 	ds=(double)s0-(double)sn;
 	di=(double)i0-(double)in;
@@ -160,7 +154,6 @@ void computeParams()
 
 void rankNodes()
 {
-//	cout<<"Entered rankNodes.\n";
 	int i,j=0,u,max;
 	for(i=0;i<population;i++)
 	{
@@ -184,7 +177,6 @@ void rankNodes()
 
 void updateState()
 {
-//	cout<<"Entered updateState.\n";
 	int i=0;
 	while(i<in)
 	{
@@ -217,9 +209,6 @@ double r(double x,double y,double z)
 
 void rungeKutta()
 {
-//	cout<<"Entered rungeKutta\n";
-//	cout<<"alpha= "<<alpha<<endl;
-//	cout<<"beta= "<<beta<<endl;
 	k1=timeElapsed*s(s0,i0,r0);
 	i1=timeElapsed*i(s0,i0,r0);
 	g1=timeElapsed*r(s0,i0,r0);
@@ -249,12 +238,10 @@ void rungeKutta()
 		rn=0;
 	rankNodes();
 	updateState();
-//	cout<<"Returned to rungeKutta.\n";
 }
 
 void computeState()
 {
-//	cout<<"Entered computeState\n";
 	int i=0;
 	for(i=0;i<population;i++)
 	{
@@ -277,7 +264,6 @@ void computeState()
 			icount++;
 		}
 	}
-//	cout<<"timeElapsed= "<<timeElapsed<<" pStartTime= "<<pStartTime<<endl;
 	if(!computeParamFlag && timeElapsed-pStartTime>=5 && icount>0)
 	{
 		computeParamFlag=1;
@@ -326,7 +312,6 @@ void sendData()
 					}
 				}
 			}
-//			cout<<"Node:- "<<i<<" BuffAvailable:- "<<nodes[i].buffAvailable<<endl;
 		}
 		if(computeParamFlag)//predictive way to mark the state of nodes.
 		{
@@ -398,8 +383,6 @@ int main(int argc,char* argv[])
 	}
 	cout<<"Enter number of source nodes:- ";
 	cin>>nsrc;
-	if(nsrc>5)//restrict the number of source nodes to 5 for simplicity
-		nsrc=5;
 	for(i=0;i<nsrc;i++)
 	{
 		do{
