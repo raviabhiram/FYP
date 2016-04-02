@@ -32,7 +32,6 @@ set nsrc [gets stdin]
       
 ####  Setting The Distance Variables
                        
-
       # For model 'TwoRayGround'
       set dist(5m)  7.69113e-06
       set dist(9m)  2.37381e-06

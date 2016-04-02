@@ -1,54 +1,47 @@
 BEGIN {
-	seqno = -1;
+	seqno = 0;
 	droppedPackets = 0;
 	receivedPackets = 0;
 	sentPackets = 0;
-	count = 0;
+	pkts = 0;
+	delay = 0;
 }
 {
 	#packet delivery ratio
-	if($1 == "a" && seqno < $6) {
-		seqno = $3;
-	} 
-	else if(($1 == "r")) {
+	if(($1 == "r")) {
 		receivedPackets++;
 	} 
 	else if ($1 == "d"){
 		droppedPackets++;
 	}
+
 	#end-to-end delay
+	
 	if($1 == "a") {
-		start_time[$6] = $2;
+		pkts++;
+		start_time[$4][$3] = $2;
 	} 
 	else if($1 == "r") {
-		end_time[$6] = $2;
+		end_time[$4][$3] = $2;
 	}
 	else if($1 == "d") {
-		end_time[$6] = -1;
+		end_time[$4][$3] = -1;
 	}
 	if($1 == "a") {
 		sentPackets++;
 	}
 }
 END {
-	for(i=0; i<=seqno; i++) {
-		if(end_time[i] > 0) {
-			delay[i] = end_time[i] - start_time[i];
-			count++;
-		}
-		else
-		{
-			delay[i] = -1;
+	for(i in start_time) {
+		for(j in start_time[i]) {
+			if(end_time[i][j]!=-1 && end_time[i][j]!=NULL) {
+				delay = delay + end_time[i][j] - start_time[i][j];
+			}
 		}
 	}
-	count = 10;
-	for(i=0; i<count; i++) {
-		if(delay[i] > 0) {
-			n_to_n_delay = n_to_n_delay + delay[i];
-		}
-	}
-	n_to_n_delay = n_to_n_delay/count;
+	n_to_n_delay = delay/sentPackets;
 	print "\n";
+	print "Delay = " delay;
 	print "ReceivedPackets = " receivedPackets;
 	print "Total Packets Sent = " sentPackets;
 	print "Delivery Ratio = " receivedPackets/sentPackets*100 "%";

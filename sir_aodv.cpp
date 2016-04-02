@@ -12,7 +12,6 @@ using namespace std;
 
 double am[MAX][MAX],timeElapsed=0,totTime,pStartTime;
 int population,tfront=-1,trear=-1;
-int dropCount=0,pktCount=0,rcvCount=0;
 int s0,i0,r0,sn,in,rn;
 double k1,k2,k3,k4,i1,i2,i3,i4,g1,g2,g3,g4;
 double alpha=0.00005,beta=0.1;
@@ -55,12 +54,12 @@ struct path//the node propertires
 	{
 		if(p->currNode==p->des)
 		{
-			cout<<"r\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet enqueue statement
+			cout<<"r\t"<<timeElapsed<<"\t"<<p->pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet enqueue statement
 			return;
 		}
 		if(buffAvailable == 0)
 		{
-			cout<<"d\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet drop statement
+			cout<<"d\t"<<timeElapsed<<"\t"<<p->pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet drop statement
 			if(startFlag==0)
 			{
 				startFlag=1;
@@ -77,14 +76,14 @@ struct path//the node propertires
 				rear=(rear+1)%buffSize;
 				q[rear]=p;
 				buffAvailable--;
-				cout<<"+\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet enqueue statement
+				cout<<"+\t"<<timeElapsed<<"\t"<<p->pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet enqueue statement
 			}
 			else
 			{
 				rear=(rear+1)%buffSize;
 				q[rear]=p;
 				buffAvailable--;
-				cout<<"a\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet enqueue statement
+				cout<<"a\t"<<timeElapsed<<"\t"<<p->pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet enqueue statement
 			}
 		}
 	}
@@ -99,7 +98,7 @@ struct path//the node propertires
 			front=(front+1)%buffSize;
 			buffAvailable++;
 			packet *p=q[front];
-			cout<<"-\t"<<timeElapsed<<"\t"<<pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet dequeue statement
+			cout<<"-\t"<<timeElapsed<<"\t"<<p->pktId<<"\t"<<p->srcNode<<"\t"<<p->des<<"\t"<<p->currNode<<"\t"<<p->nextHop<<"\t"<<state<<endl;//packet dequeue statement
 			return q[front];
 		}
 	}
@@ -291,8 +290,8 @@ void sendData()
 			{
 				if(!flag && timeElapsed>0)//data rate needs to be checked to create packets
 				{
-					packet *p=new packet(nodes[i].pktId,i,i,nodes[i].nextHop[nodes[i].destination],nodes[i].destination);
 					nodes[i].pktId++;//increment packet id for the next packet
+					packet *p=new packet(nodes[i].pktId,i,i,nodes[i].nextHop[nodes[i].destination],nodes[i].destination);
 					nodes[i].push(p,0);//push the packet into the queue of the source
 				}
 				packet *p=nodes[i].pop();//check the queue to send the next packet available
@@ -321,20 +320,12 @@ void sendData()
 		{
 			computeState();
 		}
-//		cout<<"scount="<<scount<<" icount="<<icount<<" rcount="<<rcount<<endl;
 		timeElapsed+=0.005;//update time elapsed
 		if(flag)
 			flag=0;
 		else
 			flag=1;
 	}
-}
-
-void throughput()
-{
-	double thrpt=(double)rcvCount/(double)pktCount;
-	cout<<"Delivery Ratio:- "<<thrpt<<endl;
-	return;
 }
 
 int main(int argc,char* argv[])
@@ -386,40 +377,16 @@ int main(int argc,char* argv[])
 	for(i=0;i<nsrc;i++)
 	{
 		do{
-			srcCalc=rand()%(population-i);//set a random source. endPts stores source,destination pairs
+			srcCalc=rand()%(population);//set a random source. endPts stores source,destination pairs
 		}while(nodes[srcCalc].isSource);//one node cannot be multiple sources
 		do{
-			desCalc=rand()%(population-i);
+			desCalc=rand()%(population);
 		}while(srcCalc==desCalc);//source and destination cannot be the same node
 		nodes[srcCalc].isSource=true;//set the flag to show that a node is the source
 		nodes[srcCalc].destination=desCalc;//destination for the particular source is set
 		cout<<"Source: "<<srcCalc<<" Destination: "<<desCalc<<endl;
 	}
-//	findPath();//call this function to find all pairs shortest path. AODV is based on this (Bellman-Ford)
-/*	cout<<"The routing tables are:-\n";
-	for(i=0;i<population;i++)
-	{
-		cout<<"Routing table for node "<<i<<endl;
-		cout<<"Dest\tNH\tDist\n";
-		for(j=0;j<population;j++)
-		{
-			if(i!=j)
-			{
-				cout<<j<<"\t"<<nodes[i].nextHop[j]<<"\t"<<nodes[i].dist[j]<<endl;
-			}
-		}
-	}
-	for(i=0;i<population;i++)
-	{
-		if(nodes[i].isSource)
-			printPath(i,nodes[i].destination);//print the path for each source,destination pair
-	}
-*/	cout<<"Action\ttime\tpktId\tSrc\tDes\tCur\tNH\tState\n";
+	cout<<"Action\ttime\tpktId\tSrc\tDes\tCur\tNH\tState\n";
 	sendData();//this function actually sends the packets and controls the simulation
-	pktCount=dropCount+rcvCount;
-	cout<<"Total packets sent:- "<<pktCount<<endl;
-	cout<<"Total packets dropped:- "<<dropCount<<endl;
-	cout<<"Total packets received:- "<<rcvCount<<endl;
-	throughput();
 	return 0;
 }
