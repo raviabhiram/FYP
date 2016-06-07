@@ -41,9 +41,6 @@ END {
 	}
 	n_to_n_delay = delay/sentPackets;
 	print "\n";
-	print "Delay = " delay;
-	print "ReceivedPackets = " receivedPackets;
-	print "Total Packets Sent = " sentPackets;
 	print "Delivery Ratio = " receivedPackets/sentPackets*100 "%";
 	print "" receivedPackets/sentPackets*100 >> "sir_throughput.xg";
 	print "Average End-to-End Delay = " n_to_n_delay * 1000 " ms";

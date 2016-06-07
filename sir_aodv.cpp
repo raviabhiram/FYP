@@ -153,23 +153,23 @@ void computeParams()
 
 void rankNodes()
 {
-	int i,j=0,u,max;
+	int i,j=0,u,min;
 	for(i=0;i<population;i++)
 	{
 		buffList[i]=nodes[i].buffAvailable;
 	}
 	while(j<population)
 	{
-		max=0;
+		min=9999;
 		for(i=0;i<population;i++)
 		{
-			if(buffList[i]>=max)
+			if(buffList[i]<=min)
 			{
-				max=buffList[i];
+				min=buffList[i];
 				u=i;
 			}
 		}
-		buffList[u]=0;
+		buffList[u]=9999;
 		rank[j++]=u;
 	}
 }

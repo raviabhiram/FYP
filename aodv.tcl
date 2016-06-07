@@ -1,5 +1,3 @@
-set a 1
-while {$a == 1 } {
 puts "Enter the Routing Agents in mobile networking"
 set opt(chan)           Channel/WirelessChannel    ;# channel type 
 set opt(prop)           Propagation/TwoRayGround   ;# radio-propagation model 
@@ -8,11 +6,11 @@ set opt(mac)            Mac/802_11                 ;# MAC type
 set opt(ifq)            Queue/DropTail/PriQueue    ;# interface queue type 
 set opt(ll)             LL                         ;# link layer type 
 set opt(ant)            Antenna/OmniAntenna        ;# antenna model 
-set opt(ifqlen)         50                        ;# max packet in ifq 
+set opt(ifqlen)         50                         ;# max packet in ifq 
 set opt(nn)             50                         ;# number of mobilenodes 
 set opt(rp)             AODV                       ;# routing protocol 
-set opt(x)              1800   			   ;# X dimension of topography 
-set opt(y)              840   			   ;# Y dimension of topography   
+set opt(x)              1800           ;# X dimension of topography 
+set opt(y)              840            ;# Y dimension of topography   
 
 puts "Enter number of source nodes:- "
 set nsrc [gets stdin]
@@ -21,7 +19,7 @@ set nsrc [gets stdin]
                   
       set ns_ [new Simulator]
 #create the nam and trace file:
-      set tracefd [open aodv.tr w]
+      set tracefd [open aodv1.tr w]
       $ns_ trace-all $tracefd
 
       set namtrace [open aodv.nam w]
@@ -34,7 +32,6 @@ set nsrc [gets stdin]
       
 ####  Setting The Distance Variables
                        
-
       # For model 'TwoRayGround'
       set dist(5m)  7.69113e-06
       set dist(9m)  2.37381e-06
@@ -76,11 +73,9 @@ set nsrc [gets stdin]
                   
       set Server1 [$ns_ node]
       set Server2 [$ns_ node]
-      set n2 [$ns_ node]
-      set n3 [$ns_ node]
-      set n4 [$ns_ node]
-      set n5 [$ns_ node]
-      
+      for {set i 0} {$i<48} {incr i} {
+        set n($i) [$ns_ node]
+      }      
       set opt(seed) 0.1
       set a [ns-random $opt(seed)]
       set i 0
@@ -99,97 +94,34 @@ set nsrc [gets stdin]
       $Server2 set Y_ 400.0
       $Server2 set Z_ 0.0
       
-      $n2 set X_ 350.0
-      $n2 set Y_ 700.0
-      $n2 set Z_ 0.0
-
-      $n3 set X_ 450.0
-      $n3 set Y_ 800.0
-      $n3 set Z_ 0.0
-
-      $n4 set X_ 550.0
-      $n4 set Y_ 800.0
-      $n4 set Z_ 0.0
-      
-      $n5 set X_ 700.0
-      $n5 set Y_ 810.0
-      $n5 set Z_ 0.0
-      
-            
+      for {set i 0} {$i<48} {incr i} {
+        $n($i) set X_ rand()*1000
+        $n($i) set Y_ rand()*1000
+        $n($i) set Z_ rand()*1000
+      }
       ## Setting The Node Size
-                              
-      $ns_ initial_node_pos $Server1 6
-      $ns_ initial_node_pos $Server2 6
-      $ns_ initial_node_pos $n2 6
-      $ns_ initial_node_pos $n3 6
-      $ns_ initial_node_pos $n4 6
-      $ns_ initial_node_pos $n5 6
-     
-      #### Setting The Labels For Nodes
-      
-      $ns_ at 0.0 "$Server1 label Server1"
-      $ns_ at 0.0 "$Server2 label Server2"
-      
-      $ns_ at 0.0 "$n2 label node2"
-      $ns_ at 0.0 "$n3 label node3"
-      $ns_ at 0.0 "$n4 label node4"
-      $ns_ at 0.0 "$n5 label node5"
-      
+      $ns_ initial_node_pos $Server1 50
+      $ns_ initial_node_pos $Server2 50
+      for {set i 0} {$i<48} {incr i} {
+        $ns_ initial_node_pos $n($i) 50
+      }
       ## SETTING ANIMATION RATE 
       $ns_ at 0.0 "$ns_ set-animation-rate 12.5ms"
-       
 ####  Establishing Communication
-
-      set udp0 [$ns_ create-connection UDP $Server2 LossMonitor $n4 0]
-      $udp0 set fid_ 1
-      set cbr0 [$udp0 attach-app Traffic/CBR]
-      $cbr0 set packetSize_ 1000    
-      $cbr0 set interopt_ .07
-      $ns_ at 0.0 "$cbr0 start"
-      $ns_ at 10.0 "$cbr0 stop"
-      
-      set udp1 [$ns_ create-connection UDP $n2 LossMonitor $Server1 0]
-      $udp1 set fid_ 1
-      set cbr1 [$udp1 attach-app Traffic/CBR]
-      $cbr1 set packetSize_ 1000    
-      $cbr1 set interopt_ .07
-      $ns_ at 0.1 "$cbr1 start"
-      $ns_ at 10.1 "$cbr1 stop"
-
-      $cbr0 set rate_ 1mb
-      $cbr1 set rate_ 1mb
-
-      if {$nsrc >=3 } {
-        set udp2 [$ns_ create-connection UDP $n4 LossMonitor $n3 0]
-        $udp2 set fid_ 1
-        set cbr2 [$udp2 attach-app Traffic/CBR]
-        $cbr2 set packetSize_ 1000    
-        $cbr2 set interopt_ .07
-        $ns_ at 0.1 "$cbr2 start"
-        $ns_ at 10.1 "$cbr2 stop"
-
-        $cbr0 set rate_ 0.5mb
-        $cbr1 set rate_ 0.5mb
-        $cbr2 set rate_ 0.5mb
-
-        if {$nsrc >= 4} {
-          set udp3 [$ns_ create-connection UDP $n3 LossMonitor $n4 0]
-          $udp3 set fid_ 1
-          set cbr3 [$udp2 attach-app Traffic/CBR]
-          $cbr3 set packetSize_ 1000    
-          $cbr3 set interopt_ .07
-          $ns_ at 0.1 "$cbr3 start"
-          $ns_ at 10.1 "$cbr3 stop"
-
-          $cbr0 set rate_ 0.5mb
-          $cbr1 set rate_ 0.5mb
-          $cbr2 set rate_ 0.5mb
-          $cbr3 set rate_ 0.5mb
-        }
+      for {set i 0} {$i<$nsrc} {incr i} {
+        set vals rand()*1000
+        set vals [expr int($vals) % 48]
+        set vald rand()*1000
+        set vald [expr int($vald) % 48]
+        set udp($i) [$ns_ create-connection UDP $n($vals) LossMonitor $n($vald) 0]
+        $udp($i) set fid_ 1
+        set cbr($i) [$udp($i) attach-app Traffic/CBR]
+        $cbr($i) set packetSize_ 1000    
+        $cbr($i) set interopt_ .07
+        $ns_ at 0.0 "$cbr($i) start"
+        $ns_ at 10.0 "$cbr($i) stop"
       }
-
       ### PROCEDURE TO STOP 
-
       proc stop {} {
             
                         global ns_ tracefd
@@ -200,11 +132,5 @@ set nsrc [gets stdin]
                    }
       puts "Starting Simulation........"
       $ns_ at 25.0 "stop"
-      $ns_ run
-           
-
-	
-} 
-puts "want to continue (0/1)" 
-set a [gets stdin]
+      $ns_ run 
 }

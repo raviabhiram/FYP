@@ -6,10 +6,13 @@ using namespace std;
 
 int main()
 {
+	int num;
 	int i,j,a[50][50];
-	for(i=0;i<50;i++)
+	cout<<"Enter degree of matrix:- ";
+	cin>>num;
+	for(i=0;i<num;i++)
 	{
-		for(j=0;j<50;j++)
+		for(j=0;j<num;j++)
 		{
 			if(i==j)
 				a[i][j]=0;

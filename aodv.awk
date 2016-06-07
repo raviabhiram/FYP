@@ -51,9 +51,6 @@ END {
 	}
 	n_to_n_delay = n_to_n_delay/count;
 	print "\n";
-	print "ReceivedPackets = " receivedPackets;
-	print "Total Dropped Packets = " droppedPackets;
-	print "Total Packets Sent = " (receivedPackets+droppedPackets);
 	print "Delivery Ratio = " receivedPackets/(receivedPackets+droppedPackets)*100 "%";
 	print "" receivedPackets/(receivedPackets+droppedPackets)*100 >> "aodv_throughput.xg";
 	print "Average End-to-End Delay = " n_to_n_delay * 1000 " ms";
